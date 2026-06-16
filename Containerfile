@@ -1,4 +1,4 @@
-FROM quay.io/kubealex/image-mode-baseos:10.1
+FROM quay.io/kubealex/image-mode-baseos:rhel10.1
 
 RUN dnf install -y postgresql-server postgresql && dnf clean all
 

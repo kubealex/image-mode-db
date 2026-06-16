@@ -1,0 +1,16 @@
+[Unit]
+Description=Train Tickets PostgreSQL Database
+After=train-tickets-db-init.service systemd-tmpfiles-setup.service
+Requires=train-tickets-db-init.service
+
+[Service]
+Type=notify
+User=postgres
+ExecStart=/usr/bin/postgres -D /var/lib/pgsql/data
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutSec=infinity
+
+[Install]
+WantedBy=multi-user.target

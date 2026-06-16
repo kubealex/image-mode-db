@@ -1,0 +1,28 @@
+[Unit]
+Description=Initialize Train Tickets PostgreSQL Database
+ConditionPathExists=!/var/lib/pgsql/data/PG_VERSION
+After=systemd-tmpfiles-setup.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=postgres
+
+ExecStart=/usr/bin/postgresql-setup --initdb
+
+ExecStartPost=/usr/bin/pg_ctl -D /var/lib/pgsql/data -l /var/lib/pgsql/initlog start
+ExecStartPost=/bin/sh -c 'until pg_isready -q; do sleep 1; done'
+
+ExecStartPost=/usr/bin/createdb train_tickets
+ExecStartPost=/usr/bin/psql -d train_tickets -f /usr/share/train-tickets/db-init/01-schema.sql
+ExecStartPost=/usr/bin/psql -d train_tickets -f /usr/share/train-tickets/db-init/02-seed.sql
+
+ExecStartPost=/bin/sh -c "echo \"ALTER USER postgres PASSWORD 'postgres';\" | psql"
+ExecStartPost=/bin/sh -c "sed -i 's/ident/md5/g; s/peer/md5/g' /var/lib/pgsql/data/pg_hba.conf"
+ExecStartPost=/bin/sh -c "echo \"listen_addresses = '*'\" >> /var/lib/pgsql/data/postgresql.conf"
+ExecStartPost=/bin/sh -c "echo 'host all all 0.0.0.0/0 md5' >> /var/lib/pgsql/data/pg_hba.conf"
+
+ExecStartPost=/usr/bin/pg_ctl -D /var/lib/pgsql/data stop
+
+[Install]
+WantedBy=multi-user.target

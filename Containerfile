@@ -8,3 +8,5 @@ COPY usr/ /usr/
 
 RUN systemctl enable train-tickets-db-init.service && \
     systemctl enable train-tickets-db.service
+
+RUN firewall-offline-cmd --zone=public --add-port=5432/tcp
